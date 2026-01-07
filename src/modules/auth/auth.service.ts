@@ -1,26 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { SignUpAuthDto } from './dto/create-auth.dto';
+import { SignInAuthDto, SignUpAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { ModulesEnum } from 'src/enums/modules.enum';
+import { Model } from 'mongoose';
+import { User } from '../users/schema/user.schema';
 
 @Injectable()
 export class AuthService {
+  constructor(@InjectModel(ModulesEnum.Users) private userModel: Model<User>) {}
   async signUp(payload: SignUpAuthDto) {
-    return 'This action adds a new auth';
+
+    const user = await this.userModel.findOne({ email: payload.email, isActive: true });
+    if (user) throw new Error('User already exists');
+    
+    const encryptedPassword = 'encryptedPassword'; // Replace with actual encryption logic
+    const salt = 'randomSalt'; // Replace with actual salt generation logic
+
+    const newUser = new this.userModel({  
+      ...payload,
+      password: encryptedPassword,
+      salt: salt,
+    });
+
+    await newUser.save();
+    return newUser;
   }
 
-  findAll() {
+  async signIn(payload: SignInAuthDto) {
     return `This action returns all auth`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
-  }
 }

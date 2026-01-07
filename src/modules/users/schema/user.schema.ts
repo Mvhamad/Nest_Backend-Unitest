@@ -4,7 +4,7 @@ import { RolesEnum } from 'src/enums/roles.enum';
 
 @Schema({ timestamps: true })
 export class User {
-  @Prop({ type: String, required: true, unique: true })
+  @Prop({ type: String })
   profilePhoto: string;
 
   @Prop({ type: String, required: true })
