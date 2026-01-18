@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SignInAuthDto, SignUpAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+// import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { ModulesEnum } from 'src/enums/modules.enum';
 import { Model } from 'mongoose';
