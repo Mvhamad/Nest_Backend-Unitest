@@ -5,17 +5,20 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ModulesEnum } from 'src/enums/modules.enum';
 import { Model } from 'mongoose';
 import { User } from '../users/schema/user.schema';
+import { CryptoService } from 'src/services/crypto.service';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(ModulesEnum.Users) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(ModulesEnum.Users) private userModel: Model<User>,
+    private readonly cryptoService: CryptoService,
+  ) {}
   async signUp(payload: SignUpAuthDto) {
 
     const user = await this.userModel.findOne({ email: payload.email, isActive: true });
     if (user) throw new Error('User already exists');
-    
-    const encryptedPassword = 'encryptedPassword'; // Replace with actual encryption logic
-    const salt = 'randomSalt'; // Replace with actual salt generation logic
+
+    const { salt, encryptedPassword } = await this.cryptoService.encryptPassword(payload.password);
 
     const newUser = new this.userModel({  
       ...payload,
@@ -28,7 +31,11 @@ export class AuthService {
   }
 
   async signIn(payload: SignInAuthDto) {
-    return `This action returns all auth`;
+    const user = await this.userModel.findOne({ email: payload.email, isActive: true });
+    if (!user) throw new Error('User not found');
+    const isPasswordValid = await this.cryptoService.comparePassword(payload.password, user.password);
+    if (!isPasswordValid) throw new Error('Invalid password');
+    return user;
   }
 
 }
