@@ -6,12 +6,14 @@ import { ModulesEnum } from 'src/enums/modules.enum';
 import { Model } from 'mongoose';
 import { User } from '../users/schema/user.schema';
 import { CryptoService } from 'src/services/crypto.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(ModulesEnum.Users) private userModel: Model<User>,
     private readonly cryptoService: CryptoService,
+    private readonly jwtService: JwtService,
   ) {}
   async signUp(payload: SignUpAuthDto) {
 
@@ -35,7 +37,14 @@ export class AuthService {
     if (!user) throw new Error('User not found');
     const isPasswordValid = await this.cryptoService.comparePassword(payload.password, user.password);
     if (!isPasswordValid) throw new Error('Invalid password');
-    return user;
+    return {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      isAccountVerified: user.isAccountVerified,
+      token: this.jwtService.sign({ userId: user._id, role: user.role }, { expiresIn: '3h', algorithm: 'HS256' }),
+    }
   }
 
 }
